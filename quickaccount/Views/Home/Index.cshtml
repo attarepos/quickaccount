@@ -1,0 +1,220 @@
+﻿<div class="">
+    <div class="grid">
+        <div class="row">
+            <div class="col-6">
+                <h1 class="h2">E-Accouting</h1><p>Management System</p>
+
+            </div>
+            <div class="col-6 text-right">
+                <p class="btn btn-outline-warning" onclick="PopulateData()">
+                    Load Data
+                </p>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="grid">
+
+        <div class="row">
+            <div class="card text-white bg-primary mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Sale</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="SaleToday"></span></p>
+                    <p class="card-text">Month : <span id="SaleMonth"></span></p>
+                    <p class="card-text">Total : <span id="SaleTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-secondary mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">CGS</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="PurchaseToday"></span></p>
+                    <p class="card-text">Month : <span id="PurchaseMonth"></span></p>
+                    <p class="card-text">Total : <span id="PurchaseTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-success mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Account Payable</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="APToday"></span></p>
+                    <p class="card-text">Month : <span id="APMonth"></span></p>
+                    <p class="card-text">Total : <span id="APTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-danger mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Account Receivable</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="ARToday"></span></p>
+                    <p class="card-text">Month : <span id="ARMonth"></span></p>
+                    <p class="card-text">Total : <span id="ARTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-warning mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Expence</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="ExpenceToday"></span></p>
+                    <p class="card-text">Month : <span id="ExpenceMonth"></span></p>
+                    <p class="card-text">Total : <span id="ExpenceTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-info mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Discounts</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="DiscountsToday"></span></p>
+                    <p class="card-text">Month : <span id="DiscountsMonth"></span></p>
+                    <p class="card-text">Total : <span id="DiscountsTotal"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-dark mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Profit</div>
+                <div class="card-body">
+                    <p class="card-text">Today : <span id="ProfitToday"></span></p>
+                    <p class="card-text">Month : <span id="ProfitMonth"></span></p>
+                    <p class="card-text">Total : <span id="ProfitTotal"></span></p>
+                </div>
+            </div>
+            <div class="card bg-light mb-3" style="max-width: 11rem;margin-right:45px;    width: 11rem;">
+                <div class="card-header">Customer</div>
+                <div class="card-body">
+                    <p class="card-text">Total : <span id="Customer"></span></p>
+                </div>
+            </div>
+            <div class="card text-white bg-secondary mb-3" style="max-width: 11rem;margin-right:45px;     width: 11rem;">
+                <div class="card-header">Vendor</div>
+                <div class="card-body">
+                    <p class="card-text">Total : <span id="Vendor"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="grid">
+
+        <div id="myChartDiv" style="display:none">
+            <canvas id="myChart" width="980" height="300" style="background-color:white"></canvas>
+        </div>
+
+    </div>
+</div>
+@section scripts{
+    <script>
+        PopulateData()
+        function PopulateData() {
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+
+            showLoader();
+            $.ajax({
+                url: '/api/mainapi/customer_getall',
+                success: function (data) {
+                    console.log("All Customers");
+                    console.log(data);
+                    $("#Customer").text(data.length);
+                    spinner.stop();
+                    hideLoader();
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/vendor_getall',
+                success: function (data) {
+                    console.log("All Products");
+                    console.log(data);
+                    $("#Vendor").text(data.length);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/finance_account_getAll_sum_all_transactions',
+                success: function (data) {
+                    console.log("All Finance Accounts with amount sum");
+                    console.log(data);
+                    var IncomeToday = 0;
+                    var IncomeMonth = 0;
+                    var IncomeTotal = 0;
+                    var ExpenceToday = 0;
+                    var ExpenceMonth = 0;
+                    var ExpenceTotal = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]['name'] == "Product Sale") {
+                            $("#SaleToday").text(-data[i]["today"]);
+                            $("#SaleMonth").text(-data[i]["month"]);
+                            $("#SaleTotal").text(-data[i]["total"]);
+                            IncomeToday += data[i]["today"];
+                            IncomeMonth += data[i]["month"];
+                            IncomeTotal += data[i]["total"];
+                        }
+                        else if (data[i]['name'] == "Cost Of Good Sold") {
+
+                            $("#PurchaseToday").text(data[i]["today"]);
+                            $("#PurchaseMonth").text(data[i]["month"]);
+                            $("#PurchaseTotal").text(data[i]["total"]);
+                            ExpenceToday += data[i]["today"];
+                            ExpenceMonth += data[i]["month"];
+                            ExpenceTotal += data[i]["total"];
+
+
+                        }
+                        else if (data[i]['name'] == "Account Payable") {
+                            $("#APToday").text(-data[i]["today"]);
+                            $("#APMonth").text(-data[i]["month"]);
+                            $("#APTotal").text(-data[i]["total"]);
+                        } else if (data[i]['name'] == "Account Receivable") {
+                            $("#ARToday").text(data[i]["today"]);
+                            $("#ARMonth").text(data[i]["month"]);
+                            $("#ARTotal").text(data[i]["total"]);
+                        }
+                        else if (data[i]['name'] == "Other Expence") {
+                            $("#ExpenceToday").text(data[i]["today"]);
+                            $("#ExpenceMonth").text(data[i]["month"]);
+                            $("#ExpenceTotal").text(data[i]["total"]);
+                        }
+                        else if (data[i]['name'] == "Discount") {
+                            $("#DiscountsToday").text(data[i]["today"]);
+                            $("#DiscountsMonth").text(data[i]["month"]);
+                            $("#DiscountsTotal").text(data[i]["total"]);
+                        }
+                    }
+                    $("#ProfitToday").text(-(IncomeToday + ExpenceToday));
+                    $("#ProfitMonth").text(-(IncomeMonth + ExpenceMonth));
+                    $("#ProfitTotal").text(-(IncomeTotal + ExpenceTotal));
+                }
+            });
+            LoadChart();
+        }
+        function LoadChart() {
+            $("#myChartDiv").show();
+            new Chart(document.getElementById("myChart").getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: getLabels(),
+                    datasets: [{
+                        data: [4000, 5000, 10000, 30000, 40000, 4000, 5000, 10000, 30000, 40000, 4000, 5000],
+                        label: "Sale",
+                        borderColor: "#00cc00"
+                    }, {
+                        data: [2500, 5000, 9000, 8000, 6000, 4000, 5000, 10000, 4000, 20000, 4000, 1000],
+                        label: "Purchase",
+                        borderColor: "#ff3300"
+                    }
+                    ]
+                }
+            });
+        }
+
+        function getLabels() {
+            var theMonths = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+            var today = new Date();
+            var aMonth = today.getMonth() + 1;
+            var ayear = today.getFullYear() - 1;
+            var i;
+            var newmonths = new Array();
+            for (i = 0; i < 12; i++) {
+                newmonths.push(theMonths[aMonth] + " " + ayear);
+                aMonth++;
+                if (aMonth > 11) {
+                    aMonth = 0;
+                    ayear += 1;
+                }
+            };
+            return newmonths;
+        }
+    </script>
+}

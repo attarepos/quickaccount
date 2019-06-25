@@ -1,0 +1,178 @@
+﻿<main>
+    <div class="">
+        <h4>
+            All Sale
+        </h4>
+        <hr>
+        <div class="grid">
+            <h6>Search</h6>
+            <div class="form-inline" id="Search_From">
+                <label class="col-1">From</label>
+                <input name="FromDate" id="FromDate" type="date" class="form-control" required />
+                <label class="col-1">To</label>
+                <input name="ToDate" id="ToDate" type="date" class="form-control" required />
+                <label class="col-1"></label>
+                <input type="button" class="btn" onclick="Search()" value="Search">
+            </div>
+        </div>
+        <hr>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Table1" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Transaction ID</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">User Id</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">User Name</th>
+                                <th scope="col">Tran Name</th>
+                                <th scope="col">Tran Date</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="AllProducts_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Selling Products</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <table id="AllProducts_Table" class="table table-dark">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Id</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col">Product_Batch_Id</th>
+                                    <th scope="col">Product Id</th>
+                                    <th scope="col">Transaction</th>
+                                    <th scope="col">@*Details*@</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+@section scripts{
+    <script>
+        var DateTable;
+        PopulateDate();
+        function PopulateDate() {
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            var TodayDate = new Date();
+            var FromDate = new Date((TodayDate.setMonth(TodayDate.getMonth() - 1))).toLocaleDateString();
+            var ToDate = new Date().toLocaleDateString();
+            var data = { Type: 'Sale', FromDate: FromDate, ToDate: ToDate };
+            $.ajax({
+                url: '/api/mainapi/salepurchase_getAll',
+                data: data,
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#Table1 tbody").append("<tr id=" + data[i]['id'] + "><td>" + data[i]['id'] + "</td><td>" + data[i]['fkFinanceAccount_Name'] + "</td><td>" + data[i]['userId'] + "</td><td>" + (-data[i]['amount']) + "</td><td>" + data[i]['userName'] + "</td><td>" + data[i]['name'] + "</td><td>" + data[i]['dateTime'] + "</td></tr>");
+                        //$("#Table1 tbody").append("<tr id=" + data[i]['id'] + "><td>" + data[i]['id'] + "</td><td>" + data[i]['fkFinanceAccount_Name'] + "</td><td>" + data[i]['userId'] + "</td><td>" + (-data[i]['amount']) + "</td><td>" + data[i]['userName'] + "</td><td>" + data[i]['name'] + "</td><td>" + data[i]['dateTime'] + "</td><td><span onclick='ShowProducts(this)'>Products</span></td></tr>");
+                    }
+                    DataTable = $("#Table1").DataTable({
+                        "dom": "<'row'<'col-sm-2'f><'col-sm-10 text-right'B>>",
+                        "buttons": [
+                            'colvis',
+                            'excelHtml5',
+                            'pdfHtml5'
+                        ],
+                    });
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        function ShowProducts(el)
+        {
+            var elParentRow = el.parentNode.parentNode;
+            var tid = elParentRow.id;
+            console.log(tid);
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+
+            $.ajax({
+                url: '/api/mainapi/product_transaction_getAll?TransactionId=' + tid,
+                success: function (data) {
+                    console.log(data);
+                    $("#AllProducts_Table tbody").empty();
+                    $("#AllProducts_Modal").modal("show");
+                    for (var i = 0; i < data.length; i++) {
+                        $("#AllProducts_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["price"] + "</td><td>" + data[i]["quantity"] + "</td><td>" + data[i]["total"] + "</td><td>" + data[i]["productBatchId"] + "</td><td>" + data[i]["fkProduct_Name"] + "</td><td>" + data[i]["fkFinanceTransactionId"] + "</td></tr> ");
+
+                    }
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        function Search() {
+            DataTable.destroy();
+            $("#Table1 tbody").empty();
+            var spinner = new Spinner().spin();
+            $("#Table1 tbody").append(spinner.el);
+            var FromDate = $("#FromDate").val();
+            var ToDate = $("#ToDate").val();
+            var data = { Type: 'Sale', FromDate: FromDate, ToDate: ToDate };
+            console.log(data);
+            var url = '/api/mainapi/salepurchase_getAll';
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: data,
+                success: function (data) {
+                    console.log("All Sales");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        $("#Table1 tbody").append("<tr id=" + data[i]['id'] + "><td>" + data[i]['id'] + "</td><td>" + data[i]['fkFinanceAccount_Name'] + "</td><td>" + data[i]['userId'] + "</td><td>" + data[i]['amount'] + "</td><td>" + data[i]['userName'] + "</td><td>" + data[i]['name'] + "</td><td>" + data[i]['dateTime'] + "</td><td><span onclick='ShowProducts(this)'>Products</span></td></tr>");
+                    }
+                    spinner.stop();
+                    DataTable = $("#Table1").DataTable({
+                        "dom": "<'row'<'col-sm-2'f><'col-sm-10 text-right'B>>",
+                        "buttons": [
+                            'colvis',
+                            'excelHtml5',
+                            'pdfHtml5'
+                        ],
+                    });
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+    </script>
+}
+
+
+

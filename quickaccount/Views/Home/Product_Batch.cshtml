@@ -1,0 +1,85 @@
+﻿<main>
+    <div class="">
+        <h4>Inventory And Batch Management</h4>
+        <div class="grid">
+            <div class="row">
+                <div class="col-6">
+                    <h6>All Poducts Inventory</h6>
+                    <div class="responsive">
+                        <table id="Product_Table" class="table table-hover table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product Id</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <h6>Inventory By Batches</h6>
+                    <div class="responsive">
+                        <table id="Product_Batch_Table" class="table table-hover table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Product Id</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Batch</th>
+                                    <th scope="col">Expiry</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        populateLists();
+        function populateLists()
+        {
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/productbatch_getAll',
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        $("#Product_Batch_Table tbody").append("<tr><td>" + data[i]["fkProductId"] + "</td><td>" + data[i]["fkProduct"]["name"] + "</td><td>" + data[i]["quantity"]+ "</td><td>" + data[i]["batch"] + "</td><td>" + data[i]["expiry"] + "</td></tr> ");
+                    }
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+
+            $.ajax({
+                url: '/api/mainapi/product_getAll',
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#Product_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["quantity"] + "</td></tr> ");
+                    }
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+         }
+    </script>
+}

@@ -1,0 +1,51 @@
+﻿<main>
+    <div class="row">
+        <div class="col-md-4">
+            <form method="post">
+                <h4>Assign Role.</h4>
+                <hr />
+                <div class="form-group">
+                    <label>User</label>
+                    <select class="form-control" name="userId" id="userId"></select>
+                </div>
+                <div class="form-group">
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select class="form-control" name="roleName" id="roleName"></select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-default">Assign Role To User</button>
+            </form>
+        </div>
+    </div>
+</main>
+@section scripts{
+    <script>
+        $(window).on('load', function () {
+            $.ajax({
+                url: '/api/mainapi/staff_getall',
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]['email']!="admin@admin.com")
+                        {
+                            $("#userId").append("<option value='" + data[i]["id"] + "'>" + data[i]["email"] + "</option>");
+
+                        }
+                    }
+
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/roles_getall',
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#roleName").append("<option value='" + data[i]["name"] + "'>" + data[i]["name"] + "</option>");
+                    }
+                }
+            });
+        })
+
+    </script>
+}

@@ -1,0 +1,54 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Finance Account</h1>
+        <hr />
+        <h4>Accounts List</h4>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Finance_Account_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Parent</th>
+                                <th scope="col">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        PopulateData();
+        function PopulateData()
+        {
+            var spinner = new Spinner().spin();
+            showLoader();
+            $("#Finance_Account_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/finance_accountWithBalance_getall',
+                success: function (data) {
+                    for (var i = 0; i < data.length; i++) {
+
+                        $("#Finance_Account_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["financeAccountType"] + "</td><td>" + data[i]["fkParent_Name"] + "</td><td>" + data[i]["total"] + "</td></tr > ");
+                    }
+                    feather.replace();
+                    spinner.stop();
+                    hideLoader();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+         }
+    </script>
+}

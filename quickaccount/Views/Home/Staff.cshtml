@@ -1,0 +1,55 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Staff</h1>
+        <h4>
+            Staff List
+        </h4>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Staff_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">UserName</th>
+                                <th scope="col">Email</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+@section scripts{
+    <script>
+        $(window).on('load',function () {
+            var spinner = new Spinner().spin();
+            $("#Staff_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/staff_getall',
+                success: function (data) {
+                    console.log(data);
+                    var fragment = document.createDocumentFragment();
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        $(fragment).append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["userName"] + "</td><td>" + data[i]["email"] + "</td></tr>");
+                    }
+                    $("#Staff_Table tbody").append(fragment);
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        })
+
+    </script>
+}
+
+
+

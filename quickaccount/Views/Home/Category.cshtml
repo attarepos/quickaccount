@@ -1,0 +1,153 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Category</h1>
+        <hr>
+        <div class="grid">
+            <div class="row">
+                <form id="Category_Form">
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" name="Name" class="form-control" placeholder="Name" required>
+                        </div>
+                        <div class="col">
+                            <select name="FkParentId" id="FkParentId" class="form-control">
+                                <option value="">None</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <input type="submit" class="btn" value="Save">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr>
+        <h4>
+            Category List
+        </h4>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Category_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Parent</th>
+                                <th scope="col">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="Category_Form_Edit_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Category Edit</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="Category_Form_Edit">
+                            <input type="text" name="Id" hidden>
+                            <div class="row">
+                                <div class="col">
+                                    <input type="text" name="Name" class="form-control" placeholder="Name" required>
+                                </div>
+                                <div class="col">
+                                    <select name="FkParentId" id="FkParentId" class="form-control"></select>
+                                </div>
+
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="Category_Edit_Save()">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+
+@section scripts{
+    <script>
+        $("#Category_Form").submit(function (e) {
+                alertify.success('Saving New Record');
+                e.preventDefault();
+                data = $("#Category_Form").serialize();
+                $.ajax({
+                    url: '/api/mainapi/Category_Insert',
+                    data: data,
+                    success: function (data) {
+                        window.location.reload();
+                    },
+                    error: function (data) {
+                        alertify.error('Action Failed');
+                    }
+            });
+        });
+
+        function Category_Edit_Click_In_List(id)
+        {
+            var element = $("#" + id);
+            var row = element.parent().parent();
+            var children = row.children();
+            $("#Category_Form_Edit_Modal").modal("show");
+            $('#Category_Form_Edit_Modal input[name="Id"]').val(children[0].textContent);
+            $('#Category_Form_Edit_Modal input[name="Name"]').val(children[1].textContent);
+
+            var SelectOption_Value_By_Text_Category_Type_Id = $('#Category_Form_Edit_Modal select[name="FkParentId"]').find('option:contains(' + children[2].textContent + ')').val();
+            $('#Category_Form_Edit_Modal select[name="FkParentId"]').val(SelectOption_Value_By_Text_Category_Type_Id);
+        }
+        function Category_Edit_Save() {
+            alertify.success('Updating Record');
+            $("#Category_Form_Edit_Modal").modal("hide");
+            var data = $("#Category_Form_Edit").serialize();
+            $.ajax({
+                url: '/api/mainapi/Category_Update',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        $(window).on('load',function () {
+            var spinner = new Spinner().spin();
+            $("#Category_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/category_getall',
+                success: function (data) {
+                    var selectslist = document.getElementsByName("FkParentId");
+                    console.log(data);
+                    console.log(selectslist);
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        $("#Category_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["fkParentId"] + "</td><td><span id='" + data[i]["id"] + "' data-feather='edit' onclick='Category_Edit_Click_In_List(this.id)'></span></td></tr>");
+                        $(selectslist[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option>");
+                        $(selectslist[1]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option>");
+                    }
+
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        })
+
+    </script>
+}
+
+
+

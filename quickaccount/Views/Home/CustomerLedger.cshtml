@@ -1,0 +1,184 @@
+﻿<main>
+    <div class="">
+        <h4>Customer Ledger</h4>
+        <div class="form-inline">
+            <label class="col-1"> Search </label>
+            <input class="form-control" id="querycustomer" list="customeritems" onkeypress="QueryChangedCustomer(event)" />
+            <datalist id="customeritems"></datalist>
+        </div>
+        <hr>
+        <h6>Add Payment</h6>
+        <div class="grid">
+            <form id="AddPayment_From" class="form-inline">
+                <input type="number" name="UserId" id="UserId" hidden />
+                <input type="text" name="UserType" id="UserType" value="Customer" hidden />
+                <label class="col-1">Name</label>
+                <input type="text" name="Name" id="Name" class="form-control col-3" placeholder="" required />
+                <label class="col-1">Amount</label>
+                <input type="number" name="Amount" id="Amount" class="form-control col-1" placeholder="" required />
+                <label class="col-1">Account</label>
+                <select name="FkFinanceAccountId" id="FkFinanceAccountId" class="form-control col-2" required></select>
+                <label class="col-1">Pay/Return</label>
+                <select name="ChildOf" id="ChildOf" class="form-control col-1" required>
+                    <option value="0" selected>Paying</option>
+                    <option value="1">Return</option>
+                </select>
+                <div class="col">
+                    <button class="btn" onclick="AddPayment(event)">Save</button>
+                </div>
+            </form>
+        </div>
+        <hr>
+
+        <h5>Balance Sheet</h5>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Table1" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Transaction ID</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">Tran Name</th>
+                                <th scope="col">Tran Date</th>
+                                <th scope="col">Debit</th>
+                                <th scope="col">Credit</th>
+                                <th scope="col">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+
+@section scripts{
+    <script>
+        PopulateData();
+        var UserId;
+        function PopulateData()
+        {
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/customer_getall',
+                success: function (data) {
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        $("#customeritems").append("<option id=" + data[i]['id'] + ">" + data[i]['name'] + " : " + data[i]['phone'] + "</option>");
+                    }
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/finance_account_getall',
+                success: function (data) {
+                    console.log("Accounts");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]["financeAccountType"] == "Asset") {
+                            if (data[i]["name"] != "Account Receivables" && data[i]["name"] != "Inventory" && data[i]["name"] != "Fixed Assets" && data[i]["name"] != "Current Assets" && data[i]["name"] != "Petty Cash" && data[i]["name"] != "Other Assets") {
+                                $("#FkFinanceAccountId").append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                            }
+                        }
+                    }
+                    $("#FkFinanceAccountId").val('102');
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+        function QueryChangedCustomer(event) {
+            var query = $("#querycustomer").val();
+            $("#Table1 tbody").empty();
+            UserType = "Customer";
+            var option = $("#customeritems option");
+            for (var i = 0; i < option.length; i++) {
+                var innserText = option[i].innerText;
+                if (query === innserText) {
+                    console.log(option[i]);
+                    UserId = option[i]['id'];
+                    loadLedgerData();
+                }
+            }
+        }
+        function loadLedgerData()
+        {
+            console.log(UserId);
+            $("#UserId").val(UserId);
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/user_ledger?UserId=' + UserId + '&UserType=Customer',
+                success: function (data) {
+                    console.log(data);
+                    var Balance = 0;
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        Balance += data[i]['amount'];
+                        var AmmountElements = "";
+                        if (data[i]['amount'] > 0) {
+                            AmmountElements = "<td>" + (data[i]['amount']) + "</td><td></td><td>" + Balance + "</td>";
+                        }
+                        else {
+                            AmmountElements = "<td></td><td>" + (-data[i]['amount']) + "</td><td>" + Balance + "</td>";
+                        }
+
+                        $("#Table1 tbody").append("<tr><td>" + data[i]['id'] + "</td><td>" + data[i]['fkFinanceAccount_Name'] + "</td><td>" + data[i]['name'] + "</td><td>" + data[i]['dateTime'] + "</td>" + AmmountElements + "</tr>");
+                    }
+                    spinner.stop();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+            
+        }
+        function AddPayment(e)
+        {
+            e.preventDefault();
+            console.log("Saving Data");
+
+            if ($("#UserId").val() == "") {
+                alertify.error("No User is Selected");
+                return false;
+            }
+            if ($("#Amount").val() == "")
+            {
+                alertify.error("Please enter amount");
+                return false;
+            }
+            if (parseFloat($("#PaymentAmount").val()) == 0)
+            {
+                alertify.error("Please enter amount");
+                return false;
+            }
+
+            var data = $("#AddPayment_From").serialize();
+            console.log(data);
+            alertify.success("Saving Record");
+            $.ajax({
+                url: '/api/mainapi/addpayment',
+                data:data,
+                success: function (data) {
+                    console.log(data);
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+    </script>
+}
+
+
+

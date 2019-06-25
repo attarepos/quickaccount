@@ -1,0 +1,340 @@
+﻿<main>
+    <div class="">
+        <h4>
+            Sale Return
+        </h4>
+        <div class="grid">
+            <div class="form-inline">
+                <label>Enter Transaction</label>
+                <input id="query" class="form-control" />
+                <button onclick="SearchClicked()" class="btn btn-dark">Search</button>
+            </div>
+        </div>
+        <hr>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Ledger_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Transaction ID</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Customer Id</th>
+                                <th scope="col">Customer Name</th>
+                                <th scope="col">Tran Name</th>
+                                <th scope="col">Tran Date</th>
+
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="row">
+                <div class="col-12">
+                    <h5>Sold Product</h5>
+                    <div class="table-responsive">
+                        <table id="AllProducts_Table" class="table table-hover table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Id</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="grid">
+            <div class="form-inline col-12">
+                <label class="col-1">Search</label>
+                <input id="returnquery" list="productsdatalist" class="form-control col-2" onkeypress="returnquerychanged()" />
+                <datalist id="productsdatalist"></datalist>
+                <label class="col-1">Id</label>
+                <input id="InputProductId" class="form-control col-1" />
+                <label class="col-1">Name</label>
+                <input id="InputProductName" class="form-control col-2" />
+                <label class="col-1">Price</label>
+                <input id="InputProductPrice" onkeydown="valueEnteredinPriceQueryInput(event)" class="form-control col-1" />
+                <label class="col-1">Quantity</label>
+                <input id="InputProductQuantity" class="form-control col-1" />
+            </div>
+
+        </div>
+        <hr>
+        <div class="grid">
+            <div class="row">
+
+                <div class="col-6">
+                    <h5>Returning Product</h5>
+                    <div class="table-responsive">
+                        <table id="ReturnProducts_Table" class="table table-hover table-dark table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Id</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                </div>
+                <div class="col-6">
+                    <input type="checkbox" id="Payable"> Payable <br>
+                    <select id="All_Asset_Accounts_Selectlist" class="form-control"></select>
+                    <label> Total Return : <span id="TotalBill">0</span></label>
+                    <button class="btn btn-dark" onclick="ReturnSale()">Return</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+
+@section scripts{
+    <script>
+        PopulateData();
+        var tid;
+        var CustomerId = 0;
+        var Products = new Array();
+        var PurchaseList = new Array();
+        function PopulateData()
+        {
+            $.ajax({
+                url: "/api/mainapi/finance_account_getAll",
+                success: function (data) {
+                    console.log("All Accounts");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]["financeAccountType"] == "Asset") {
+
+                            $("#All_Asset_Accounts_Selectlist").append("<option value=" + data[i]["id"] + ">" + data[i]["name"] + "</option>");
+                        }
+                    }
+                    $("#All_Asset_Accounts_Selectlist").val("102");
+                }
+            });
+        }
+        function SearchClicked()
+        {
+            ClearLoadedData();
+            tid = parseInt($("#query").val());
+            console.log(tid);
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/finance_transaction_getById?Id=' + tid,
+                success: function (data) {
+                    console.log(data);
+                    if (data == false)
+                    {
+                        alertify.error('No Sale Found');
+                        spinner.stop();
+                        return false;
+                    }
+                    if ((data['fkFinanceAccount_Name'] != "Products Sale") || (data['amount'] > 0) )
+                    {
+                        alertify.error('No Sale Found');
+                        spinner.stop();
+                        return false;
+                    }
+                    if (data['userId'] != 0) {
+                        CustomerId = data['userId'];
+                    }
+                    $("#Ledger_Table tbody").append("<tr><td>" + data['id'] + "</td><td>" + data['fkFinanceAccount_Name'] + "</td><td>" + -data['amount'] + "</td><td>" + data['userId'] + "</td><td>" + data['userName'] + "</td><td>" + data['transactionName'] + "</td><td>" + data['dateTime'] + "</td></tr>");
+                    spinner.stop();
+                    ShowProducts();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        function ClearLoadedData()
+        {
+            $("#Ledger_Table tbody").empty();
+            $("#AllProducts_Table tbody").empty();
+            $("#ReturnProducts_Table tbody").empty();
+            CustomerId = 0;
+            Products = new Array();
+            PurchaseList = new Array();
+        }
+        function ShowProducts()
+        {
+            console.log(tid);
+            var spinner = new Spinner().spin();
+            $("body").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/product_transaction_getAll?TransactionId=' + tid,
+                success: function (data) {
+                    spinner.stop();
+                    console.log("Products from ajax");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        var Product = {};
+                        Product.id = data[i]["id"];
+                        Product.name = data[i]["fkProduct_Name"];
+                        Product.price = data[i]["price"];
+                        Product.quantity = -data[i]["quantity"];
+                        Product.total = -data[i]["total"];
+                        Products.push(Product);
+                    }
+                    console.log("Products custom");
+                    console.log(Products);
+                    for (var i = 0; i < Products.length; i++)
+                    {
+                        $("#AllProducts_Table tbody").append("<tr><td>" + Products[i]["id"] + "</td><td>" + Products[i]["name"] + "</td><td>" + Products[i]["price"] + "</td><td>" + Products[i]["quantity"] + "</td><td>" + data[i]["total"] + "</td></tr>");
+                        $("#productsdatalist").append("<option id=" + Products[i]["id"] + ">" + Products[i]["name"]  +  "</option>");
+                    }
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        function returnquerychanged() {
+            if (event.key == "Enter") {
+                if ($("#InputProductId").val() != "") {
+                    console.log("Time To Add Product");
+                    var productid = $("#InputProductId").val();
+                    var productname = $("#InputProductName").val();
+                    var productPrice = $("#InputProductPrice").val();
+                    var productQuantity = $("#InputProductQuantity").val();
+                    if ($("#InputProductQuantity").val() == "") {
+                        $("#InputProductQuantity").focus();
+                        alertify.error("Please Enter Return Quantity");
+                        return false;
+                    }
+                    var purchasingProductObject = { id: productid, name: productname, price: parseFloat(productPrice), quantity: parseFloat(productQuantity) };
+                    addProductToPurchaseList(purchasingProductObject);
+                    return;
+                }
+            }
+            else {
+                $("#InputProductId").val("");
+                $("#InputProductName").val("");
+                $("#InputProductPrice").val("");
+                $("#InputProductQuantity").val("");
+            };
+            var query = $("#returnquery").val();
+            var option = $("#productsdatalist option");
+            for (var i = 0; i < option.length; i++) {
+                var innserText = option[i].innerText;
+                if (query === innserText) {
+                    //selecting product form array with datalist id
+                    for (var j = 0; j < Products.length; j++) {
+                        if (Products[j]["id"] == option[i].id) {
+                            console.log(Products[j]);
+                            $("#InputProductId").val(Products[j]["id"]);
+                            $("#InputProductName").val(Products[j]["name"]);
+                            $("#InputProductPrice").val(Products[j]["price"]);
+                            $("#InputProductQuantity").val("1");
+                            $("#returnquery").val("");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        function addProductToPurchaseList(o) {
+            console.log(o);
+            for (var i = 0; i < PurchaseList.length; i++) {
+                if (PurchaseList[i]["id"] == o["id"]) {
+                    if (CheckInvenotry(PurchaseList[i],1))
+                    {
+                        PurchaseList[i]["quantity"] += 1;
+                     }
+                    console.log(PurchaseList);
+                    UpdateTable();
+                    return;
+                }
+            }
+            if (CheckInvenotry(o,0))
+            {
+                PurchaseList.push(o);
+             }
+            console.log(PurchaseList);
+            UpdateTable();
+        }
+        function CheckInvenotry(sellingProduct, plus) {
+            for (var i = 0; i < Products.length; i++) {
+                if (Products[i]["id"] == sellingProduct["id"]) {
+                    if ((sellingProduct["quantity"] + plus) > Products[i]["quantity"]) {
+                        alertify.error("Remaining Quantity of " + Products[i]["name"] + " is " + Products[i]["quantity"]);
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }
+            }
+        }
+        function UpdateTable() {
+            $("#ReturnProducts_Table tbody").empty();
+            var TotalBill = 0;
+            for (var i = 0; i < PurchaseList.length; i++) {
+                var itemTotal = PurchaseList[i]["price"] * PurchaseList[i]["quantity"];
+                $("#ReturnProducts_Table tbody").append("<tr><td>" + PurchaseList[i]["id"] + "</td><td>" + PurchaseList[i]["name"] + "</td><td>" + PurchaseList[i]["price"] + "</td><td>" + PurchaseList[i]["quantity"] + "</td><td>" + itemTotal + "</td></tr>");
+                TotalBill += itemTotal;
+            }
+            feather.replace();
+            $("#TotalBill").text(TotalBill);
+        }
+        function ReturnSale()
+        {
+            var SaleModel = {};
+            SaleModel.Ledger = false;
+            if ($("#Payable").is(':checked') == true) {
+                if (CustomerId == 0)
+                {
+                    alertify.error("Return can not be moved to Account Payable. No Customer is selected");
+                    return false;
+                 }
+                SaleModel.Ledger = true;
+            }
+            if (PurchaseList.length == 0)
+            {
+                alertify.error('Please Select Product');
+                return false;
+            }
+            SaleModel.TransactionId = tid;
+            SaleModel.SaleList = PurchaseList;
+            SaleModel.CustomerId = CustomerId;
+            SaleModel.TotalBill = parseFloat($("#TotalBill").text());
+            SaleModel.FinanceAccountId = parseInt($("#All_Asset_Accounts_Selectlist").val());
+            console.log(SaleModel);
+            alertify.success('Saving');
+            showLoader();
+            $.ajax({
+                url: '/api/mainapi/SaleReturn',
+                type: 'post',
+                data: SaleModel,
+                success: function (data) {
+                    console.log(data);
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                    hideLoader();
+                }
+            });
+        }
+    </script>
+}
+
+
+

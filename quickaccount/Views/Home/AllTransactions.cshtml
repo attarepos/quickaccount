@@ -1,0 +1,57 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Finance Transaction</h1>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Finance_Transaction_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">GroupId</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">DateTime</th>
+                                <th scope="col">ChildOF</th>
+                                <th scope="col">Finance Account</th>
+                                <th scope="col">User Id</th>
+                                <th scope="col">USer Type</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        
+        $(window).on('load', function () {
+            var spinner = new Spinner().spin();
+            $("#Finance_Transaction_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/finance_transaction_getall',
+                type:'post',
+                success: function (data) {
+                    console.log(data);
+                    var fragment = document.createDocumentFragment();
+                    for (var i = 0; i < data.length; i++) {
+                        $(fragment).append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["groupId"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["amount"] + "</td><td>" + data[i]["status"] + "</td><td>" + data[i]["dateTime"] + "</td><td>" + data[i]["childOf"] + "</td><td>" + data[i]["fkFinanceAccount_Name"] + "</td><td>" + data[i]["userId"] + "</td><td>" + data[i]["userType"] + "</td></tr > ");
+                    }
+                    $("#Finance_Transaction_Table tbody").append(fragment);
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            }); 
+        })
+    </script>
+}

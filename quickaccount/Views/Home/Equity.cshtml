@@ -1,0 +1,194 @@
+﻿<main>
+    <div class="">
+        <h4>Equity</h4>
+        <hr />
+        <div class="grid">
+            <h6>Add New</h6>
+            <div class="row" style="margin-left:1em">
+
+                <form id="Equity_Form">
+                    <div class="row">
+                        <label class="col-form-label-sm">Name</label>
+                        <div class="col">
+                            <input type="text" name="Name" id="Name" class="form-control" placeholder="Name" required />
+                        </div>
+                        <label class="col-form-label-sm">Account</label>
+                        <div class="col">
+                            <select name="FkFinanceAccountId" id="FkFinanceAccountId" class="form-control"></select>
+                        </div>
+                        <label class="col-form-label-sm">Amount</label>
+                        <div class="col">
+                            <input name="Amount" id="Amount" type="number" class="form-control" required />
+                        </div>
+                        <label class="col-form-label-sm">Paying form</label>
+                        <div class="col">
+                            <select name="ChildOf" id="ChildOf" class="form-control"></select>
+                        </div>
+                        <div class="col">
+                            <input type="submit" class="btn" value="Save">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr />
+        
+        <div class="grid">
+            <h6>Search</h6>
+            <div class="form-inline" id="Search_From">
+                <label class="col-1">From</label>
+                <input name="FromDate" id="FromDate" type="date" class="form-control" required />
+                <label class="col-1">To</label>
+                <input name="ToDate" id="ToDate" type="date" class="form-control" required />
+                <label class="col-1"></label>
+                <input type="button" class="btn" onclick="Search()" value="Search">
+            </div>
+        </div>
+        <hr />
+        <div class="grid">
+            <h6>List</h6>
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Equity_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Account</th>
+                                <th scope="col">Method</th>
+                                <th scope="col">Reference</th>
+                                <th scope="col">Edited</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        var DataTable;
+        PopulateDate();
+        function PopulateDate() {
+            var spinner = new Spinner().spin();
+            $("#Equity_Table tbody").append(spinner.el);
+            var TodayDate = new Date();
+            var FromDate = new Date((TodayDate.setMonth(TodayDate.getMonth() - 1))).toLocaleDateString();
+            var ToDate = new Date().toLocaleDateString();
+            var data = { FinanceAccountType: 'Equity', FromDate: FromDate, ToDate: ToDate };
+            console.log(data);
+            var url = '/api/mainapi/finance_transaction_getall';
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: data,
+                success: function (data) {
+                    console.log("Equitys");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+
+                        $("#Equity_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["amount"] + "</td><td>" + data[i]["status"] + "</td><td>" + data[i]["dateTime"] + "</td><td>" + data[i]["fkFinanceAccount_Name"] + "</td><td>" + data[i]["paymentMethod"] + "</td><td>" + data[i]["referenceNumber"] + "</td><td>" + data[i]["fkAspnetusers_Name"] + "</td></tr > ");
+                    }
+                    spinner.stop();
+                    DataTable = $("#Equity_Table").DataTable({
+                        "dom": "<'row'<'col-sm-2'f><'col-sm-10 text-right'B>>",
+                        "buttons": [
+                            'colvis',
+                            'excelHtml5',
+                            'pdfHtml5',
+                        ],
+                    });
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/finance_account_getall',
+                success: function (data) {
+                    console.log("Accounts");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]["financeAccountType"] == "Equity") {
+                           $("#FkFinanceAccountId").append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                        }
+                        if (data[i]["financeAccountType"] == "Asset") {
+                            if (data[i]["name"] != "Inventory" && data[i]["name"] != "Fixed Assets" && data[i]["name"] != "Current Assets" && data[i]["name"] != "Account Receivables" && data[i]["name"] != "Other Assets") {
+                                $("#ChildOf").append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+
+                            }
+                        }
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+        $("#Equity_Form").submit(function (e) {
+            e.preventDefault();
+            if (($("#Name").val() == "") || ($("#FkFinanceAccountId").val() == "") || ($("#ChildOf").val() == "") || ($("#Amount").val() == "")) {
+                alertify.error('Please Enter All Values');
+                return false;
+            }
+            data = $("#Equity_Form").serialize();
+            console.log(data);
+            alertify.success('Saving New Record');
+            $.ajax({
+                url: '/api/mainapi/Equity_insert',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        });
+        function Search() {
+            DataTable.destroy();
+            $("#Equity_Table tbody").empty();
+            var spinner = new Spinner().spin();
+            $("#Equity_Table tbody").append(spinner.el);
+            var FromDate = $("#FromDate").val();
+            var ToDate = $("#ToDate").val();
+            var data = { FinanceAccountType: 'Equity', FromDate: FromDate, ToDate: ToDate };
+            console.log(data);
+            var url = '/api/mainapi/finance_transaction_getall';
+            $.ajax({
+                url: url,
+                type: 'post',
+                data: data,
+                success: function (data) {
+                    console.log("Equitys");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+
+                        $("#Equity_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["amount"] + "</td><td>" + data[i]["status"] + "</td><td>" + data[i]["dateTime"] + "</td><td>" + data[i]["fkFinanceAccount_Name"] + "</td><td>" + data[i]["paymentMethod"] + "</td><td>" + data[i]["referenceNumber"] + "</td><td>" + data[i]["fkAspnetusers_Name"] + "</td></tr > ");
+                    }
+                    spinner.stop();
+                    DataTable = $("#Equity_Table").DataTable({
+                        "dom": "<'row'<'col-sm-2'f><'col-sm-10 text-right'B>>",
+                        "buttons": [
+                            'colvis',
+                            'excelHtml5',
+                            'pdfHtml5'
+                        ],
+                    });
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,182 @@
+﻿<main>
+    <div class="">
+        <h4>Edit Product</h4>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <form id="Product_Form" class="form-inline">
+                    <div class="row col-12" style="padding-bottom:15px">
+                        <input type="text" name="Id" id="Id" hidden/>
+                        <label class="col-1">Name</label>
+                        <input type="text" name="Name" id="Name" class="form-control col-2" required />
+                        <label class="col-1">Barcode</label>
+                        <input type="text" name="Barcode" id="Barcode" class="form-control col-2" />
+                        <label class="col-1">Sale Price</label>
+                        <input type="number" name="SalePrice" id="SalePrice" class="form-control col-1" required />
+                        <label class="col-1">Purchase</label>
+                        <input type="number" name="PurchasePrice" id="PurchasePrice" class="form-control col-1" required />
+                        <label class="col-1">Discount</label>
+                        <input type="number" name="Discount" id="Discount" class="form-control col-1" value="0" />
+                    </div>
+                    <div class="row col-12" style="padding-bottom:15px">
+                        <label class="col-1">Type</label>
+                        <select name="Type" id="Type" class="form-control col-2">
+                            <option value="Product">Product</option>
+                            <option value="Deal">Deal</option>
+                            <option value="Recipe">Recipe</option>
+                            <option value="Raw">Raw</option>
+                            <option value="Service">Service</option>
+                        </select>
+                        <label class="col-1">Manufacturer</label>
+                        <select name="FkManufacturerId" id="FkManufacturerId" class="form-control col-2">
+                            <option></option>
+                        </select>
+                        <label class="col-1">Category</label>
+                        <select name="FkCategoryId" id="FkCategoryId" class="form-control col-1">
+                            <option></option>
+                        </select>
+                        <label class="col-1">Sale Acitive</label>
+                        <select name="ActiveOnSale" id="ActiveOnSale" class="form-control col-1">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                        <label class="col-1">Purchase Active</label>
+                        <select name="ActiveOnPurchase" id="ActiveOnPurchase" class="form-control col-1">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                    </div>
+                    <div class="row col-12">
+
+                        <label class="col-1">Description</label>
+                        <input type="text" name="Description" id="Description" class="form-control col-2" placeholder="Description" />
+                        <label class="col-1">Sku</label>
+                        <input type="number" name="Sku" id="Sku" class="form-control col-2" />
+                        <label class="col-1">Rack</label>
+                        <select name="FkRackId" id="FkRackId" class="form-control col-2">
+                            <option></option>
+                        </select>
+                        <label class="col-1"></label>
+                        <button class="btn col-1" onclick="Product_Edit_Save(event)">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+       
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        var Product;
+        PopulateDate();
+        function PopulateDate()
+        {
+            $.ajax({
+                url: '/api/mainapi/vendor_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Vendors");
+                    var FK_Vendor_Id_SelectList = document.getElementsByName("FkVendorId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Vendor_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/manufacturer_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Manufacturers");
+                    var FK_Manufacturer_Id_SelectList = document.getElementsByName("FkManufacturerId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Manufacturer_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/category_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Categories");
+                    var FK_Category_Id_SelectList = document.getElementsByName("FkCategoryId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Category_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/rack_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Racks");
+                    var FK_Category_Id_SelectList = document.getElementsByName("FkRackId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Category_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            setTimeout(function () { 
+                $.ajax({
+                url: '/api/mainapi/product_getById?Id='+'@ViewBag.Id',
+                success: function (data) {
+                    Product = data;
+                    console.log("Product");
+                    console.log(data);
+                    $("#Id").val(data.id);
+                    $("#Name").val(data.name);
+                    $("#Barcode").val(data.barcode);
+                    $("#Description").val(data.description);
+                    $("#SalePrice").val(data.salePrice);
+                    $("#PurchasePrice").val(data.purchasePrice);
+                    $("#Discount").val(data.discount);
+                    $("#Quantity").val(data.quantity);
+                    $("#FkCategoryId").val(data.fkCategoryId.toString());
+                    $("#FkManufacturerId").val(data.fkManufacturerId.toString());
+                    $("#Type").val(data.type);
+                    $("#ActiveOnSale").val(data.activeOnSale.toString());
+                    $("#ActiveOnPurchase").val(data.activeOnPurchase.toString());
+                    $("#Sku").val(data.sku);
+                    $("#FkRackId").val(data.fkRackId);
+                    feather.replace();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+            },2000);
+            
+         }
+        function Product_Edit_Save(e) {
+            event.preventDefault();
+            alertify.success('Updating Record');
+            var data = $("#Product_Form").serialize();
+            $.ajax({
+                url: '/api/mainapi/Product_Update',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+
+    </script>
+}

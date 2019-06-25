@@ -1,0 +1,120 @@
+﻿<main>
+    <div class="container">
+        <h3 style="padding-top:10px;">New Sale</h3>
+        <hr>
+        <div class="form-inline">
+            <div class="bg-light">
+                <p></p>
+                <div class="form-group">
+                    <label class="col-1">Bill</label>
+                    <input id="TotalBill" type="number" oninput="TotalBillChanged()" class="form-control col-2" />
+                    <label class="col-1">Customer</label>
+                    <select id="CustomerId" class="form-control col-2">
+                        <option></option>
+                    </select>
+                    <label class="col-1">Total Payment</label>
+                    <input id="TotalPayment" type="number" class="form-control col-2" />
+                    <label class="col-1">Account</label>
+                    <select id="All_Asset_Accounts_Selectlist" class="form-control col-2"></select>
+                    <label class="col-1">CGS</label>
+                    <input id="DiscountedBill" type="number" class="form-control col-2" />
+                </div>
+                <p></p>
+
+            </div>
+        </div>
+        <button onclick="PurchaseDone()" class="btn btn-dark btn-sm">Sale Done</button>
+    </div>
+</main>
+@section scripts{
+    <script type="text/javascript">
+        populateDataList();
+        function populateDataList() {
+            $.ajax({
+                url: "/api/mainapi/customer_getall",
+                success: function (data) {
+                    console.log("Customer from ajax request");
+                    for (var i = 0; i < data.length; i++)
+                    {
+                        $("#CustomerId").append("<option value=" + data[i]["id"] + ">" + data[i]["name"] + "</option>");
+                    }
+                }
+            });
+            $.ajax({
+                url: "/api/mainapi/finance_account_getAll",
+                success: function (data) {
+                    console.log("All Accounts");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i]["financeAccountType"] == "Asset") {
+                            $("#All_Asset_Accounts_Selectlist").append("<option value=" + data[i]["id"] + ">" + data[i]["name"] + "</option>");
+                        }
+                    }
+                    $("#All_Asset_Accounts_Selectlist").val("102");
+                }
+            });
+        }
+        function TotalBillChanged()
+        {
+            $("#TotalPayment").val($("#TotalBill").val());
+         }
+        function PurchaseDone() {
+            var SaleModel = {};
+            if ($("#TotalBill").val() == "") {
+                alertify.error("Please Enter Bill amount.");
+                return false;
+            }
+            if ($("#TotalPayment").val() == "")
+            {
+                alertify.error("Please Enter paying amount. enter 0 if no amount paying");
+                return false;
+            }
+            if ($("#DiscountedBill").val() == "") {
+                alertify.error("Please Enter CGS amount. enter 0 if no amount");
+                return false;
+            }
+            if (parseFloat($("#TotalPayment").val()) > parseFloat($("#TotalBill").val()))
+            {
+                alertify.error("Payment is greater then bill");
+                return false;
+            }
+            SaleModel.Ledger = false;
+            if (parseFloat($("#TotalBill").val()) > parseFloat($("#TotalPayment").val()))
+            {
+                SaleModel.Ledger = true;
+            }
+            if ($("#CustomerId").val() == "") {
+                if (parseFloat($("#TotalBill").val()) > parseFloat($("#TotalPayment").val()))
+                {
+                    alertify.error("It is Ledger Entry. Please select vendor");
+                    return false;
+                }
+            }
+            SaleModel.CustomerId = parseFloat($("#CustomerId").val());
+            SaleModel.TotalBill = parseFloat($("#TotalBill").val());
+            SaleModel.FinanceAccountId = parseInt($("#All_Asset_Accounts_Selectlist").val());
+            SaleModel.TotalPayment = parseFloat($("#TotalPayment").val());
+            SaleModel.DiscountedBill = parseFloat($("#DiscountedBill").val());
+            console.log(SaleModel);
+            alertify.success("Saving");
+            $.ajax({
+                url: "/api/mainapi/NewSale",
+                type:"post",
+                data: SaleModel,
+                success: function (data) {
+                    console.log(data);
+                    if (data == true) {
+                        hideLoader();
+                        alertify.success("Saved");
+                        setTimeout(function () { window.location.reload();},5000);
+
+                    } else
+                    {
+                        hideLoader();
+                        alertify.error("Some Error Occured");
+                    }
+                }
+            });
+        }
+    </script>
+}

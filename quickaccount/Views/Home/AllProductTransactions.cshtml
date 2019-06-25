@@ -1,0 +1,53 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Product Transaction</h1>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Product_Transaction_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Quantity</th>
+                                <th scope="col">Total</th>
+                                <th scope="col">Product_Batch_Id</th>
+                                <th scope="col">Product Id</th>
+                                <th scope="col">Transaction</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        
+        $(window).on('load', function () {
+            var spinner = new Spinner().spin();
+            $("#Product_Transaction_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/product_transaction_getAll',
+                success: function (data) {
+                    console.log(data);
+                    var fragment = document.createDocumentFragment();
+                    for (var i = 0; i < data.length; i++) {
+                        $(fragment).append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["price"] + "</td><td>" + data[i]["quantity"] + "</td><td>" + data[i]["total"] + "</td><td>" + data[i]["productBatchId"] + "</td><td>" + data[i]["fkProduct_Name"] + "</td><td>" + data[i]["fkFinanceTransactionId"] + "</td></tr> ");
+                    }
+                    $("#Product_Transaction_Table tbody").append(fragment);
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            }); 
+        })
+    </script>
+}

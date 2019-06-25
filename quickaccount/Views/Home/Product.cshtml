@@ -1,0 +1,447 @@
+﻿<main>
+    <div class="">
+        <h4>Product & Deals</h4>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <form id="Product_Form" class="form-inline">
+                    <div class="row col-12" style="padding-bottom:15px">
+                        <label class="col-1">Name</label>
+                        <input type="text" name="Name" id="Name" class="form-control col-2" placeholder="Name" required />
+                        <label class="col-1">Barcode</label>
+                        <input type="text" name="Barcode" id="Barcode" class="form-control col-2" placeholder="Barcode" />
+                        <label class="col-1">Sale Price</label>
+                        <input type="number" name="SalePrice" class="form-control col-1" required />
+                        <label class="col-1">Purchase</label>
+                        <input type="number" name="PurchasePrice" class="form-control col-1" required />
+                        <label class="col-1">Discount</label>
+                        <input type="number" name="Discount" class="form-control col-1" value="0" />
+                    </div>
+                    <div class="row col-12" style="padding-bottom:15px">
+                        <label class="col-1">Type</label>
+                        <select name="Type" class="form-control col-2">
+                            <option value="Product">Product</option>
+                            <option value="Deal">Deal</option>
+                            <option value="Recipe">Recipe</option>
+                            <option value="Raw">Raw</option>
+                            <option value="Service">Service</option>
+                        </select>
+                        <label class="col-1">Manufacturer</label>
+                        <select name="FkManufacturerId" class="form-control col-2">
+                            <option></option>
+                        </select>
+                        <label class="col-1">Category</label>
+                        <select name="FkCategoryId" class="form-control col-1">
+                            <option></option>
+                        </select>
+                        <label class="col-1">Sale Acitive</label>
+                        <select name="ActiveOnSale" class="form-control col-1">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                        <label class="col-1">Purchase Active</label>
+                        <select name="ActiveOnPurchase" class="form-control col-1">
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                    </div>
+                    <div class="row col-12">
+
+                        <label class="col-1">Description</label>
+                        <input type="text" name="Description" class="form-control col-2" placeholder="Description" />
+                        <label class="col-1">Sku</label>
+                        <input type="number" name="Sku" class="form-control col-2" />
+                        <label class="col-1">Rack</label>
+                        <select name="FkRackId" class="form-control col-2">
+                            <option></option>
+                        </select>
+                        <label class="col-1"></label>
+                        <input type="submit" class="btn col-2" value="Save">
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Product_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Bar</th>
+                                <th scope="col">Sale</th>
+                                <th scope="col">Pur</th>
+                                <th scope="col">Dis</th>
+                                <th scope="col">Des</th>
+                                <th scope="col">Qty</th>
+                                <th scope="col">Manu</th>
+                                <th scope="col">Cat</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">S.Act</th>
+                                <th scope="col">P.Act</th>
+                                <th scope="col">Sku</th>
+                                <th scope="col">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @*Deal Modal*@
+        <div class="modal fade" id="DealProduct_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Deal Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table id="DealProduct_Modal_Table" class="table table-hover table-dark table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Id</th>
+                                        <th scope="col">Product Id</th>
+                                        <th scope="col">Product Name</th>
+                                        <th scope="col">Quantity</th>
+                                        <th scope="col">Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+
+                            </table>
+                        </div>
+                        <div class="form-inline">
+                            <form id="DealProduct_Modal_Form_DealProduct_Insert">
+                                <label>Deal Id</label>
+                                <input type="number" name="FkDealId" id="FkDealId" readonly />
+                                <label>Product Id</label>
+                                <input type="number" name="FkProductId" class="form-control" placeholder="Product Id to Add" required />
+                                <label>Quantity</label>
+                                <input type="number" name="Quantity" class="form-control" value="1" required />
+                                <p class="btn btn-success" onclick="ProductDeal_Insert()">Save</p>
+                            </form>
+
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*Invenotry Gain Modal*@
+        <div class="modal fade" id="InventoryGain_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Gain On Inventory</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-inline">
+                            <form id="InventoryGain_Modal_Form">
+                                <label>Product Id</label>
+                                <input type="number" name="FkProductId" class="form-control" readonly />
+                                <label>Quantity</label>
+                                <input type="number" name="Quantity" class="form-control" value="1" required />
+                                <label> </label>
+                                <p class="btn btn-success" onclick="InventoryGain_Insert()">Save</p>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*Invenotry Loss Modal*@
+        <div class="modal fade" id="InventoryLoss_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Gain On Inventory</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-inline">
+                            <form id="InventoryLoss_Modal_Form">
+                                <label>Product Id</label>
+                                <input type="number" name="FkProductId" class="form-control" readonly />
+                                <label>Quantity</label>
+                                <input type="number" name="Quantity" class="form-control" value="1" required />
+                                <label> </label>
+                                <p class="btn btn-success" onclick="InventoryLoss_Insert()">Save</p>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        var Products;
+        PopulateDate();
+        var DataTable;
+        function PopulateDate()
+        {
+            var spinner = new Spinner().spin();
+            $("#Product_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/product_getall',
+                success: function (data) {
+                    Products = data;
+                    console.log("All Products");
+                    console.log(data);
+                    var fragment = document.createDocumentFragment();
+                    for (var i = 0; i < data.length; i++) {
+                        var Manufacturer = "";
+                        if (data[i]["fkManufacturerId"] != null) {
+                            Manufacturer = data[i]["fkManufacturer_Name"];
+                        }
+                        var Category = "";
+                        if (data[i]["fkCategoryId"] != null) {
+                            Category = data[i]["fkCategory_Name"];
+                        }
+                        var Type = "";
+                        if (data[i]["type"] == "Deal") {
+                            Type = "<span id = '" + data[i]["id"] + "' data-feather='gift' onclick = 'Deal_Edit_Click_In_List(this.id)' ></span >";
+                        } else if (data[i]["type"] == "Recipe")
+                        {
+                            Type = "<span id = '" + data[i]["id"] + "' data-feather='box' onclick = 'Deal_Edit_Click_In_List(this.id)' ></span >";
+                        }
+                        var GainLoss = "";
+                        GainLoss = "<span id = '" + data[i]["id"] + "' data-feather='plus' onclick = 'InventoryGain_Click_In_List(this.id)' ></span >" + "<span color='yellow' id = '" + data[i]["id"] + "' data-feather='minus' onclick = 'InventoryLoss_Click_In_List(this.id)' ></span >";
+                        
+                        var Edit = "<span id = '" + data[i]["id"] + "' data-feather='edit' onclick = 'Product_Edit_Click_In_List(this.id)' ></span >";
+                        $(fragment).append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["barcode"] + "</td><td>" + data[i]["salePrice"] + "</td><td>" + data[i]["purchasePrice"] + "</td><td>" + data[i]["discount"] + "</td><td>" + data[i]["description"] + "</td><td>" + data[i]["quantity"] + "</td><td>" + Manufacturer + "</td><td>" + Category + "</td><td>" + data[i]["type"] + "</td><td>" + data[i]["activeOnSale"] + "</td><td>" + data[i]["activeOnPurchase"] + "</td><td>" + data[i]["sku"] + "</td><td>" + Type + GainLoss + Edit + "</td ></tr > ");
+                    }
+                    $("#Product_Table tbody").append(fragment);
+                    feather.replace();
+                    spinner.stop();
+                    DataTable = $("#Product_Table").DataTable({
+                        "dom": "<'row'<'col-sm-2'f><'col-sm-10 text-right'B>>",
+                        "buttons": [
+                            'colvis',
+                            'excelHtml5',
+                            'pdfHtml5'
+                        ],
+                    });
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/vendor_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Vendors");
+                    var FK_Vendor_Id_SelectList = document.getElementsByName("FkVendorId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Vendor_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                        $(FK_Vendor_Id_SelectList[1]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/manufacturer_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Manufacturers");
+                    var FK_Manufacturer_Id_SelectList = document.getElementsByName("FkManufacturerId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Manufacturer_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                        $(FK_Manufacturer_Id_SelectList[1]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/category_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Categories");
+                    var FK_Category_Id_SelectList = document.getElementsByName("FkCategoryId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Category_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                        $(FK_Category_Id_SelectList[1]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+            $.ajax({
+                url: '/api/mainapi/rack_getall',
+                success: function (data) {
+                    console.log(data);
+                    console.log("All Racks");
+                    var FK_Category_Id_SelectList = document.getElementsByName("FkRackId");
+                    for (var i = 0; i < data.length; i++) {
+                        $(FK_Category_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+         }
+        $("#Product_Form").submit(function (e) {
+            e.preventDefault();
+            for (var i = 0; i < Products.length; i++)
+            {
+                var Name = $("#Name").val();
+                var Barcode = $("#Barcode").val();
+                if (Products[i]["name"] == Name)
+                {
+                    alertify.error("Name Already Exixs");
+                    return false;
+                }
+                if (Products[i]["barcode"] == Barcode) {
+                    alertify.error("Barcode Already Exixs");
+                    return false;
+                }
+            }
+            alertify.success('Saving New Record');
+            
+            data = $("#Product_Form").serialize();
+            $.ajax({
+                url: '/api/mainapi/product_insert',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        });
+        function Product_Edit_Click_In_List(id) {
+            window.location = "ProductEdit?Id=" + id;
+        }
+        function Deal_Edit_Click_In_List(id) {
+            $("#FkDealId").val(id);
+            $("#DealProduct_Modal_Table tbody").empty();
+            $.ajax({
+                url: '/api/mainapi/dealproduct_getall/?dealId=' + id,
+                success: function (data) {
+                    console.log("Deal Products");
+                    console.log(data);
+                    for (var i = 0; i < data.length; i++) {
+                        var Remove = "<span id = '" + data[i]["id"] + "' data-feather='trash-2' onclick = 'dealproduct_DeleteById(this.id)' ></span >";
+                        $("#DealProduct_Modal_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["subId"] + "</td><td>" + data[i]["subName"] + "</td><td>" + data[i]["quantity"] + "</td><td>" + Remove + "<td></tr>");
+                    }
+                    feather.replace();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+            $("#DealProduct_Modal").modal("show");
+        };
+        function ProductDeal_Insert()
+        {
+            alertify.success('Saving New Record');
+            data = $("#DealProduct_Modal_Form_DealProduct_Insert").serialize();
+            console.log(data);
+            $.ajax({
+                url: '/api/mainapi/dealproduct_insert',
+                data: data,
+                success: function (data) {
+                    Deal_Edit_Click_In_List($("#FkDealId").val());
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        }
+        function dealproduct_DeleteById(dealproductid) {
+            alertify.success('Saving New Record');
+            console.log(dealproductid);
+            $.ajax({
+                url: '/api/mainapi/dealproduct_DeleteById?dealproductid=' + dealproductid,
+                success: function (data) {
+                    Deal_Edit_Click_In_List($("#FkDealId").val());
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        }
+
+        function InventoryGain_Click_In_List(id) {
+            console.log("Inventory gain of "+id);
+            $("#InventoryGain_Modal input[name='FkProductId']").val(id);
+            $("#InventoryGain_Modal").modal("show");
+        };
+        function InventoryGain_Insert() {
+            alertify.success('Saving New Record');
+            data = $("#InventoryGain_Modal_Form").serialize();
+            console.log(data);
+            $.ajax({
+                url: '/api/mainapi/InventoryGain_Insert',
+                type:'post',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        }
+
+        function InventoryLoss_Click_In_List(id) {
+            console.log("Inventory loss of " + id);
+            $("#InventoryLoss_Modal input[name='FkProductId']").val(id);
+            $("#InventoryLoss_Modal").modal("show");
+        };
+        function InventoryLoss_Insert() {
+            alertify.success('Saving New Record');
+            data = $("#InventoryLoss_Modal_Form").serialize();
+            console.log(data);
+            $.ajax({
+                url: '/api/mainapi/InventoryLoss_Insert',
+                type: 'post',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        }
+
+    </script>
+}

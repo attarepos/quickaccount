@@ -1,0 +1,167 @@
+﻿<main>
+    <div class="">
+        <h1 class="h2">Finance Account</h1>
+        <hr />
+        <div class="grid">
+            <div class="row">
+                <form id="Finance_Account_Form">
+                    <div class="row">
+                        <div class="col">
+                            <input type="text" name="Name" class="form-control" placeholder="Name" required />
+                        </div>
+                        <div class="col">
+                            <select name="FinanceAccountType" class="form-control">
+                                <option value="Asset">Asset</option>
+                                <option value="Liability">Liability</option>
+                                <option value="Equity">Equity</option>
+                                <option value="Income">Income</option>
+                                <option value="Expence">Expence</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <select name="FkParentId" class="form-control">
+                            </select>
+                        </div>
+                        <div class="col">
+                            <input type="submit" class="btn" value="Save">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr />
+        <h4>Accounts List</h4>
+        <div class="grid">
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Finance_Account_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Parent</th>
+                                <th scope="col">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="Finance_Account_Form_Edit_Modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Finance Account Edit</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="Finance_Account_Form_Edit">
+                            <div class="row">
+                                <input type="text" name="Id" hidden />
+                                <div class="col">
+                                    <input type="text" name="Name" class="form-control" placeholder="Name" required />
+                                </div>
+                                <div class="col">
+                                    <select name="FinanceAccountType" class="form-control">
+                                        <option value="Asset">Asset</option>
+                                        <option value="Liability">Liability</option>
+                                        <option value="Equity">Equity</option>
+                                        <option value="Income">Income</option>
+                                        <option value="Expence">Expence</option>
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <select name="FkParentId" class="form-control"></select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="Finance_Account_Form_Edit_Modal_Edit_Save()">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        PopulateData();
+        function PopulateData()
+        {
+            var spinner = new Spinner().spin();
+            $("#Finance_Account_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/Finance_Account_getall',
+                success: function (data) {
+                    console.log("All Accounts");
+                    console.log(data);
+                    var FK_Vendor_Id_SelectList = document.getElementsByName("FkParentId");
+                    for (var i = 0; i < data.length; i++) {
+                        
+                        $("#Finance_Account_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["name"] + "</td><td>" + data[i]["financeAccountType"] + "</td><td>" + data[i]["fkParent_Name"] + "</td><td><span id = '" + data[i]["id"] + "' data-feather='edit' onclick = 'Finance_Account_Edit_Click_In_List(this.id)' ></span ></td ></tr > ");
+                        //appending in select lists
+                        $(FK_Vendor_Id_SelectList[0]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                        $(FK_Vendor_Id_SelectList[1]).append("<option value='" + data[i]["id"] + "'>" + data[i]["name"] + "</option> ");
+                    }
+                    feather.replace();
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+         }
+        $("#Finance_Account_Form").submit(function (e) {
+            alertify.success('Saving New Record');
+            e.preventDefault();
+            data = $("#Finance_Account_Form").serialize();
+            $.ajax({
+                url: '/api/mainapi/Finance_Account_insert',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        });
+        function Finance_Account_Edit_Click_In_List(id) {
+            var element = $("#" + id);
+            var row = element.parent().parent();
+            var children = row.children();
+            $("#Finance_Account_Form_Edit_Modal").modal("show");
+            $('#Finance_Account_Form_Edit_Modal input[name="Id"]').val(children[0].textContent);
+            $('#Finance_Account_Form_Edit_Modal input[name="Name"]').val(children[1].textContent);  
+            var SelectOption_Value_By_Text_FK_Vendor_Id = $('#Finance_Account_Form_Edit_Modal select[name="FinanceAccountType"]').find('option:contains(' + children[2].textContent + ')').val();
+            $('#Finance_Account_Form_Edit_Modal select[name="FinanceAccountType"]').val(SelectOption_Value_By_Text_FK_Vendor_Id);
+
+            var SelectOption_Value_By_Text_FK_Vendor_Id1 = $('#Finance_Account_Form_Edit_Modal select[name="FKParentId"]').find('option:contains(' + children[3].textContent + ')').val();
+            $('#Finance_Account_Form_Edit_Modal select[name="FKParentId"]').val(SelectOption_Value_By_Text_FK_Vendor_Id1);
+        }
+        function Finance_Account_Form_Edit_Modal_Edit_Save() {
+            alertify.success('Updating Record');
+            $("#Finance_Account_Form_Edit_Modal").modal('hide');
+            var data = $("#Finance_Account_Form_Edit").serialize();
+            $.ajax({
+                url: '/api/mainapi/Finance_Account_Update',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+    </script>
+}

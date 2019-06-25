@@ -1,0 +1,176 @@
+﻿<main>
+    <div class="">
+        <h4>Closing</h4>
+        <hr />
+        <p class="btn btn-info" onclick="LoadAmountsForClosing()">Load Balance</p>
+        <div class="grid">
+            <div class="row">
+                <form id="Closing_Form" class="form-inline">
+                    <div class="row">
+                        <label class="col-1">Date</label>
+                            <input type="date" name="DateTime" id="DateTime" class="form-control col-3" required />
+                        
+                        <label class="col-1">Income</label>
+                            <input type="number" name="Income" id="Income" class="form-control col-1" required />
+                        
+                        <label class="col-1">Expence</label>
+                            <input type="number" name="Expence" id="Expence" class="form-control col-1" required />
+                       
+                        
+                        <label class="col-1">Clos Bal</label>
+                            <input type="number" name="ClosingBalance" id="ClosingBalance" class="form-control col-1" required />
+                        
+                        <label class="col-1">5000</label>
+                            <input type="number" name="Note1" id="Note1" class="form-control col-1" />
+                        
+
+                        <label class="col-1">1000</label>
+                            <input type="number" name="Note2" id="Note2" class="form-control col-1" />
+                        
+                        <label class="col-1">500</label>
+                            <input type="number" name="Note3" id="Note3" class="form-control col-1" />
+                        
+                        <label class="col-1">100</label>
+                            <input type="number" name="Note4" id="Note4" class="form-control col-1" />
+                        
+                        <label class="col-1">50</label>
+                            <input type="number" name="Note5" id="Note5" class="form-control col-1" />
+                        
+                        <label class="col-1">20</label>
+                            <input type="number" name="Note6" id="Note6" class="form-control col-1" />
+                        
+                        <label class="col-1">10</label>
+                            <input type="number" name="Note7" id="Note7" class="form-control col-1" />
+                        
+                        <label class="col-1">5</label>
+                            <input type="number" name="Note8" id="Note8" class="form-control col-1" />
+                            <label class="col-1"></label>
+                            <input type="submit" class="btn" value="Save">
+                        
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr />
+        <div class="grid">
+            <h6>List</h6>
+            <div class="row">
+                <div class="table-responsive">
+                    <table id="Closing_Table" class="table table-hover table-dark table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Comment</th>
+                                <th scope="col">Income</th>
+                                <th scope="col">Expence</th>
+                                <th scope="col">Closing Balance</th>
+                                <th scope="col">Note1</th>
+                                <th scope="col">Note2</th>
+                                <th scope="col">Note3</th>
+                                <th scope="col">Note4</th>
+                                <th scope="col">Note5</th>
+                                <th scope="col">Note6</th>
+                                <th scope="col">Added By</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts{
+    <script>
+        var AllClosings;
+        PopulateData();
+        function PopulateData()
+        {
+            var spinner = new Spinner().spin();
+            $("#Closing_Table tbody").append(spinner.el);
+            $.ajax({
+                url: '/api/mainapi/closing_getall',
+                success: function (data) {
+                    console.log("Closings");
+                    console.log(data);
+                    AllClosings = data;
+                    for (var i = 0; i < data.length; i++) {
+                        $("#Closing_Table tbody").append("<tr><td>" + data[i]["id"] + "</td><td>" + data[i]["dateTime"] + "</td><td>" + data[i]["comment"] + "</td><td>" + data[i]["income"] + "</td><td>" + data[i]["expence"] + "</td><td>" + data[i]["closingBalance"] + "</td><td>" + data[i]["note1"] + "</td><td>" + data[i]["note2"] + "</td><td>" + data[i]["note3"] + "</td><td>" + data[i]["note4"] + "</td><td>" + data[i]["note5"] + "</td><td>" + data[i]["note6"] + "</td><td>" + data[i]["note7"] + "</td><td>" + data[i]["fkAspnetusers_Name"] + "</td></tr > ");
+                    }
+                    spinner.stop();
+                },
+                error: function (data) {
+                    console.log(data);
+                    alertify.error('Action Failed');
+                }
+            });
+        }
+        $("#Closing_Form").submit(function (e) {
+            e.preventDefault();
+            if (($("#DateTime").val() == "") || ($("#Income").val() == "") || ($("#Expence").val() == "") || ($("#ClosingBalance").val() == "")) {
+                alertify.error('Please Enter All Values');
+                return false;
+            }
+
+            var DateTime = $("#DateTime").val();
+            var TodayDate = new Date();
+            var DateTimeToObject = new Date(DateTime);
+
+            if (DateTimeToObject.getDate() > TodayDate.getDate())
+            {
+                alertify.error('Can Not Save Next Day closing');
+                return false;
+             }
+            for (var i = 0; i < AllClosings.length; i++) {
+                if (AllClosings[i]["dateTime"] == DateTime)
+                {
+                    alertify.error('Closing Already Saved');
+                    return false;
+                }
+            }
+            
+            data = $("#Closing_Form").serialize();
+            console.log(data);
+            alertify.success('Saving New Record');
+            $.ajax({
+                url: '/api/mainapi/Closing_insert',
+                data: data,
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (data) {
+                    alertify.error('Action Failed');
+
+                }
+            });
+        });
+        function LoadAmountsForClosing()
+        {
+            if (($("#DateTime").val() == "")) {
+                alertify.error('Please Enter Date');
+                return false;
+            }
+
+            $.ajax({
+                url: '/api/mainapi/Closing_LoadAmounts',
+                type: 'post',
+                data: { dateTime: $("#DateTime").val()},
+                success: function (data)
+                {
+                    console.log(data);
+                    $("#Income").val(data.cashPlus);
+                    $("#Expence").val(data.cashMinus);
+                    var ClosingBalance = data.previousDayClosingBalance + data.cashPlus + data.cashMinus;
+                    $("#ClosingBalance").val(ClosingBalance);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+
+            })
+        }
+    </script>
+}
+
